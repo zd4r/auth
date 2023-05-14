@@ -71,7 +71,6 @@ func ToUserDesc(user *model.User) *desc.UserInfo {
 		u.User.Email = wrapperspb.String(user.Email.String)
 	}
 
-	// Верно ли??
 	u.User.Role = desc.RoleInfo(desc.RoleInfo_value[user.Role])
 
 	u.CreatedAt = timestamppb.New(user.CreatedAt)
