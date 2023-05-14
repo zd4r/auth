@@ -9,7 +9,7 @@ import (
 )
 
 func (i *Implementation) Create(ctx context.Context, req *desc.CreateRequest) (*emptypb.Empty, error) {
-	err := i.userService.Create(ctx, convertor.ToUser(req.GetUser()))
+	err := i.userService.Create(ctx, convertor.ToUser(req.GetUser(), req.GetPasswordConfirm()))
 	if err != nil {
 		return nil, err
 	}

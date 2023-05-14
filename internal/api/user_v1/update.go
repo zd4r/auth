@@ -9,7 +9,7 @@ import (
 )
 
 func (i *Implementation) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-	err := i.userService.Update(ctx, convertor.ToUser(req.GetUser()))
+	err := i.userService.Update(ctx, convertor.ToUserNullable(req.GetUser()))
 	if err != nil {
 		return nil, err
 	}
