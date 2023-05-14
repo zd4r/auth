@@ -55,22 +55,15 @@ func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, er
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
 			"username": user.Username,
-		})
+		}).Limit(1)
 
 	query, args, err := builder.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := r.pool.Query(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	// rows.Next() automatically closes rows when all rows are read (тогда зачем rows.Close()?)
-	defer rows.Close()
+	rows := r.pool.QueryRow(ctx, query, args...)
 
-	// Нет цикла, поскольку предполагается что username уникальный.
-	rows.Next()
 	var u model.User
 	err = rows.Scan(
 		&u.Username,
