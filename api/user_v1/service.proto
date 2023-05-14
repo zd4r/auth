@@ -16,16 +16,17 @@ service UserV1 {
 }
 
 message User {
-  google.protobuf.StringValue username = 1;
-  google.protobuf.StringValue email = 2;
-  google.protobuf.StringValue password = 3;
-  google.protobuf.StringValue password_confirm = 4;
+  string username = 1;
+  string email = 2;
+  string password = 3;
   RoleInfo role = 5;
 }
 
-enum RoleInfo {
-  USER = 0;
-  ADMIN = 1;
+message UserNullable {
+  google.protobuf.StringValue username = 1;
+  google.protobuf.StringValue email = 2;
+  google.protobuf.StringValue password = 3;
+  RoleInfo role = 5;
 }
 
 message UserInfo {
@@ -34,8 +35,14 @@ message UserInfo {
   google.protobuf.Timestamp updated_at = 3;
 }
 
+enum RoleInfo {
+  USER = 0;
+  ADMIN = 1;
+}
+
 message CreateRequest {
   User user = 1;
+  string password_confirm = 4;
 }
 
 message GetRequest {
@@ -47,7 +54,7 @@ message GetResponse {
 }
 
 message UpdateRequest {
-  User user = 1;
+  UserNullable user = 1;
 }
 
 message DeleteRequest {
