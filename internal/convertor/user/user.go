@@ -6,13 +6,38 @@ import (
 	model "github.com/zd4r/auth/internal/model/user"
 	desc "github.com/zd4r/auth/pkg/user_v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func ToUser(user *desc.User) *model.User {
-	u := &model.User{
-		Role: user.GetRole().String(),
+func ToUser(user *desc.User, passwordConfirm string) *model.User {
+	u := model.User{}
+
+	u.Username = sql.NullString{
+		String: user.GetUsername(),
+		Valid:  true,
 	}
+
+	u.Email = sql.NullString{
+		String: user.GetEmail(),
+		Valid:  true,
+	}
+
+	u.Password = sql.NullString{
+		String: user.GetPassword(),
+		Valid:  true,
+	}
+
+	u.ConfirmPassword = sql.NullString{
+		String: passwordConfirm,
+		Valid:  true,
+	}
+
+	u.Role = user.GetRole().String()
+
+	return &u
+}
+
+func ToUserNullable(user *desc.UserNullable) *model.User {
+	u := model.User{}
 
 	if user.GetUsername() != nil {
 		u.Username = sql.NullString{
@@ -28,13 +53,6 @@ func ToUser(user *desc.User) *model.User {
 		}
 	}
 
-	if user.GetPasswordConfirm() != nil {
-		u.ConfirmPassword = sql.NullString{
-			String: user.GetPasswordConfirm().GetValue(),
-			Valid:  true,
-		}
-	}
-
 	if user.GetEmail() != nil {
 		u.Email = sql.NullString{
 			String: user.GetEmail().GetValue(),
@@ -42,7 +60,9 @@ func ToUser(user *desc.User) *model.User {
 		}
 	}
 
-	return u
+	u.Role = user.GetRole().String()
+
+	return &u
 }
 
 func ToUsername(username string) *model.User {
@@ -60,15 +80,15 @@ func ToUserDesc(user *model.User) *desc.UserInfo {
 	}
 
 	if user.Username.Valid {
-		u.User.Username = wrapperspb.String(user.Username.String)
+		u.User.Username = user.Username.String
 	}
 
 	if user.Password.Valid {
-		u.User.Password = wrapperspb.String(user.Password.String)
+		u.User.Password = user.Password.String
 	}
 
 	if user.Email.Valid {
-		u.User.Email = wrapperspb.String(user.Email.String)
+		u.User.Email = user.Email.String
 	}
 
 	u.User.Role = desc.RoleInfo(desc.RoleInfo_value[user.Role])
