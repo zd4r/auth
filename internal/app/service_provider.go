@@ -6,9 +6,9 @@ import (
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	userV1 "github.com/zd4r/auth/internal/api/user_v1"
-	"github.com/zd4r/auth/internal/closer"
 	userRepository "github.com/zd4r/auth/internal/repository/user"
 	userService "github.com/zd4r/auth/internal/service/user"
+	"github.com/zd4r/auth/pkg/closer"
 )
 
 type serviceProvider struct {

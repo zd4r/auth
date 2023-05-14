@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/zd4r/auth/internal/closer"
+	"github.com/zd4r/auth/pkg/closer"
 	desc "github.com/zd4r/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
