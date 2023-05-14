@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -97,9 +98,12 @@ func (r *repository) Update(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	ct, err := r.pool.Exec(ctx, query, args...)
 	if err != nil {
 		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return errors.New("user not found")
 	}
 
 	return nil
@@ -117,9 +121,12 @@ func (r *repository) Delete(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	ct, err := r.pool.Exec(ctx, query, args...)
 	if err != nil {
 		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return errors.New("user not found")
 	}
 
 	return nil
