@@ -1,9 +1,10 @@
 syntax = "proto3";
 
+package user_v1;
+
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-package user_v1;
 
 option go_package="github.com/zd4r/auth/pkg/user_v1;user_v1";
 
@@ -19,12 +20,12 @@ message User {
   google.protobuf.StringValue email = 2;
   google.protobuf.StringValue password = 3;
   google.protobuf.StringValue password_confirm = 4;
-  roleInfo role = 5;
+  RoleInfo role = 5;
 }
 
-enum roleInfo {
-  user = 0;
-  admin = 1;
+enum RoleInfo {
+  USER = 0;
+  ADMIN = 1;
 }
 
 message UserInfo {
