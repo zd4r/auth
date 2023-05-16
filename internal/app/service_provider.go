@@ -12,7 +12,6 @@ import (
 )
 
 type serviceProvider struct {
-	//pgxPool        *pgxpool.Pool
 	pgClient       pg.Client
 	userRepository userRepository.Repository
 	userService    userService.Service
