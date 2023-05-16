@@ -8,9 +8,17 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+var _ PG = (*pg)(nil)
+
 type Query struct {
 	Name     string
 	QueryRaw string
+}
+
+type QueryExecer interface {
+	Exec(ctx context.Context, q Query, args ...interface{}) (pgconn.CommandTag, error)
+	Query(ctx context.Context, q Query, args ...interface{}) (pgx.Rows, error)
+	QueryRow(ctx context.Context, q Query, args ...interface{}) pgx.Row
 }
 
 type Pinger interface {
@@ -21,16 +29,10 @@ type Closer interface {
 	Close() error
 }
 
-type QueryExecer interface {
-	Exec(ctx context.Context, q Query, args ...interface{}) (pgconn.CommandTag, error)
-	Query(ctx context.Context, q Query, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, q Query, args ...interface{}) pgx.Row
-}
-
 type PG interface {
+	QueryExecer
 	Pinger
 	Closer
-	QueryExecer
 }
 
 type pg struct {
