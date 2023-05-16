@@ -28,9 +28,9 @@ type QueryExecer interface {
 }
 
 type PG interface {
-	QueryExecer
 	Pinger
 	Closer
+	QueryExecer
 }
 
 type pg struct {
