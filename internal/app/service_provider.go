@@ -4,15 +4,16 @@ import (
 	"context"
 	"log"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	userV1 "github.com/zd4r/auth/internal/api/user_v1"
+	"github.com/zd4r/auth/internal/client/pg"
 	userRepository "github.com/zd4r/auth/internal/repository/user"
 	userService "github.com/zd4r/auth/internal/service/user"
 	"github.com/zd4r/auth/pkg/closer"
 )
 
 type serviceProvider struct {
-	pgxPool        *pgxpool.Pool
+	//pgxPool        *pgxpool.Pool
+	pgClient       pg.Client
 	userRepository userRepository.Repository
 	userService    userService.Service
 
@@ -23,36 +24,28 @@ func NewServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
 
-func (s *serviceProvider) GetPgxPool(ctx context.Context) *pgxpool.Pool {
-	if s.pgxPool == nil {
-		pgCfg, err := pgxpool.ParseConfig("host=localhost port=54321 dbname=user user=user-user password=user-password sslmode=disable")
+func (s *serviceProvider) GetPgClient(ctx context.Context) pg.Client {
+	if s.pgClient == nil {
+		cl, err := pg.NewClient(ctx)
 		if err != nil {
-			log.Fatalf("failed to parse config from dsn")
+			log.Fatalf("failed to get pg client: %s", err.Error())
 		}
 
-		dbc, err := pgxpool.ConnectConfig(ctx, pgCfg)
-		if err != nil {
-			log.Fatalf("failed to get db connections: %s", err.Error())
-		}
-		closer.Add(func() error {
-			dbc.Close()
-			return nil
-		})
-
-		err = dbc.Ping(ctx)
+		err = cl.PG().Ping(ctx)
 		if err != nil {
 			log.Fatalf("failed ping db: %s", err.Error())
 		}
+		closer.Add(cl.PG().Close)
 
-		s.pgxPool = dbc
+		s.pgClient = cl
 	}
 
-	return s.pgxPool
+	return s.pgClient
 }
 
 func (s *serviceProvider) GetUserRepository(ctx context.Context) userRepository.Repository {
 	if s.userRepository == nil {
-		s.userRepository = userRepository.NewRepository(s.GetPgxPool(ctx))
+		s.userRepository = userRepository.NewRepository(s.GetPgClient(ctx))
 	}
 
 	return s.userRepository

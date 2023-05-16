@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/zd4r/auth/internal/client/pg"
 	model "github.com/zd4r/auth/internal/model/user"
 )
 
@@ -22,12 +22,12 @@ type Repository interface {
 }
 
 type repository struct {
-	pool *pgxpool.Pool
+	client pg.Client
 }
 
-func NewRepository(pool *pgxpool.Pool) *repository {
+func NewRepository(client pg.Client) *repository {
 	return &repository{
-		pool: pool,
+		client: client,
 	}
 }
 
@@ -42,7 +42,12 @@ func (r *repository) Create(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Create",
+		QueryRaw: query,
+	}
+
+	_, err = r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
 		return err
 	}
@@ -63,7 +68,12 @@ func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, er
 		return nil, err
 	}
 
-	rows := r.pool.QueryRow(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Get",
+		QueryRaw: query,
+	}
+
+	rows := r.client.PG().QueryRow(ctx, q, args...)
 
 	var u model.User
 	err = rows.Scan(
@@ -98,7 +108,12 @@ func (r *repository) Update(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	ct, err := r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Update",
+		QueryRaw: query,
+	}
+
+	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
 		return err
 	}
@@ -121,7 +136,12 @@ func (r *repository) Delete(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	ct, err := r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Delete",
+		QueryRaw: query,
+	}
+
+	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
 		return err
 	}
