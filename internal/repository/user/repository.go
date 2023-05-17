@@ -16,9 +16,9 @@ const tableName = `"user"`
 
 type Repository interface {
 	Create(ctx context.Context, user *model.User) error
-	Get(ctx context.Context, user *model.User) (*model.User, error)
-	Update(ctx context.Context, user *model.User) error
-	Delete(ctx context.Context, user *model.User) error
+	Get(ctx context.Context, username string) (*model.User, error)
+	Update(ctx context.Context, username string, user *model.User) error
+	Delete(ctx context.Context, username string) error
 }
 
 type repository struct {
@@ -55,12 +55,12 @@ func (r *repository) Create(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, error) {
+func (r *repository) Get(ctx context.Context, username string) (*model.User, error) {
 	builder := sq.Select("username", "email", "password", "role", "created_at", "updated_at").
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		}).Limit(1)
 
 	query, args, err := builder.ToSql()
@@ -91,7 +91,7 @@ func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, er
 	return &u, nil
 }
 
-func (r *repository) Update(ctx context.Context, user *model.User) error {
+func (r *repository) Update(ctx context.Context, username string, user *model.User) error {
 	builder := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Set("username", user.Username).
@@ -100,7 +100,7 @@ func (r *repository) Update(ctx context.Context, user *model.User) error {
 		Set("role", user.Role).
 		Set("updated_at", time.Now()).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		})
 
 	query, args, err := builder.ToSql()
@@ -124,11 +124,11 @@ func (r *repository) Update(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (r *repository) Delete(ctx context.Context, user *model.User) error {
+func (r *repository) Delete(ctx context.Context, username string) error {
 	builder := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		})
 
 	query, args, err := builder.ToSql()
