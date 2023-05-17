@@ -26,10 +26,7 @@ func ToUser(user *desc.User, passwordConfirm string) *model.User {
 		Valid:  true,
 	}
 
-	u.ConfirmPassword = sql.NullString{
-		String: passwordConfirm,
-		Valid:  true,
-	}
+	u.ConfirmPassword = passwordConfirm
 
 	u.Role = user.GetRole().String()
 
