@@ -73,17 +73,8 @@ func (r *repository) Get(ctx context.Context, username string) (*model.User, err
 		QueryRaw: query,
 	}
 
-	rows := r.client.PG().QueryRow(ctx, q, args...)
-
 	var u model.User
-	err = rows.Scan(
-		&u.Username,
-		&u.Email,
-		&u.Password,
-		&u.Role,
-		&u.CreatedAt,
-		&u.UpdatedAt,
-	)
+	err = r.client.PG().ScanOne(ctx, &u, q, args...)
 	if err != nil {
 		return nil, err
 	}

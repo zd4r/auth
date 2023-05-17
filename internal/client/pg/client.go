@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var _ Client = (*client)(nil)
@@ -24,7 +24,7 @@ func NewClient(ctx context.Context) (*client, error) {
 		log.Fatalf("failed to parse config from dsn")
 	}
 
-	dbc, err := pgxpool.ConnectConfig(ctx, pgCfg)
+	dbc, err := pgxpool.NewWithConfig(ctx, pgCfg)
 	if err != nil {
 		log.Fatalf("failed to get db connections: %s", err.Error())
 	}
