@@ -62,15 +62,6 @@ func ToUserNullable(user *desc.UserNullable) *model.User {
 	return &u
 }
 
-func ToUsername(username string) *model.User {
-	return &model.User{
-		Username: sql.NullString{
-			String: username,
-			Valid:  true,
-		},
-	}
-}
-
 func ToUserDesc(user *model.User) *desc.UserInfo {
 	u := desc.UserInfo{
 		User: &desc.User{},
