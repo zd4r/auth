@@ -4,13 +4,12 @@ import (
 	"context"
 	"net"
 
+	"github.com/zd4r/auth/internal/config"
 	"github.com/zd4r/auth/pkg/closer"
 	desc "github.com/zd4r/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-const grpcPort = ":50051"
 
 type App struct {
 	serviceProvider *serviceProvider
@@ -45,6 +44,7 @@ func (a *App) Run() error {
 
 func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
+		config.Init,
 		a.initServiceProvider,
 		a.initGRPCServer,
 	}
@@ -75,7 +75,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) runGRPCServer() error {
-	lis, err := net.Listen("tcp", grpcPort)
+	lis, err := net.Listen("tcp", a.serviceProvider.GetGRPCConfig().Host())
 	if err != nil {
 		return err
 	}

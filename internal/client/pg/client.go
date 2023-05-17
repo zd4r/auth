@@ -18,12 +18,7 @@ type client struct {
 	pg PG
 }
 
-func NewClient(ctx context.Context) (*client, error) {
-	pgCfg, err := pgxpool.ParseConfig("host=localhost port=54321 dbname=user user=user-user password=user-password sslmode=disable")
-	if err != nil {
-		log.Fatalf("failed to parse config from dsn")
-	}
-
+func NewClient(ctx context.Context, pgCfg *pgxpool.Config) (*client, error) {
 	dbc, err := pgxpool.NewWithConfig(ctx, pgCfg)
 	if err != nil {
 		log.Fatalf("failed to get db connections: %s", err.Error())
