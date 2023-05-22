@@ -70,7 +70,7 @@ func (s *serviceProvider) GetPgClient(ctx context.Context) pg.Client {
 		if err != nil {
 			log.Fatalf("failed ping db: %s", err.Error())
 		}
-		closer.Add(cl.PG().Close)
+		closer.Add(cl.Close)
 
 		s.pgClient = cl
 	}
