@@ -32,7 +32,7 @@ type Pinger interface {
 }
 
 type Closer interface {
-	Close() error
+	Close()
 }
 
 type PG interface {
@@ -80,7 +80,6 @@ func (p *pg) Ping(ctx context.Context) error {
 	return p.pgxPool.Ping(ctx)
 }
 
-func (p *pg) Close() error {
+func (p *pg) Close() {
 	p.pgxPool.Close()
-	return nil
 }

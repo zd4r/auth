@@ -35,10 +35,9 @@ func (c *client) PG() PG {
 	return c.pg
 }
 
-// Close - Зачем если можно Client.PG().Close() ? (также как и с Client.PG().Ping())
 func (c *client) Close() error {
 	if c.pg != nil {
-		return c.pg.Close()
+		c.pg.Close()
 	}
 
 	return nil
