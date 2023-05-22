@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	model "github.com/zd4r/auth/internal/model/user"
 )
@@ -14,9 +15,12 @@ func (s *service) Update(ctx context.Context, username string, user *model.User)
 
 	match(user, latestUser)
 
-	err = s.userRepository.Update(ctx, username, latestUser)
+	rowsAffected, err := s.userRepository.Update(ctx, username, latestUser)
 	if err != nil {
 		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("user not found")
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -17,8 +16,8 @@ const tableName = `"user"`
 type Repository interface {
 	Create(ctx context.Context, user *model.User) error
 	Get(ctx context.Context, username string) (*model.User, error)
-	Update(ctx context.Context, username string, user *model.User) error
-	Delete(ctx context.Context, username string) error
+	Update(ctx context.Context, username string, user *model.User) (int64, error)
+	Delete(ctx context.Context, username string) (int64, error)
 }
 
 type repository struct {
@@ -82,7 +81,7 @@ func (r *repository) Get(ctx context.Context, username string) (*model.User, err
 	return &u, nil
 }
 
-func (r *repository) Update(ctx context.Context, username string, user *model.User) error {
+func (r *repository) Update(ctx context.Context, username string, user *model.User) (int64, error) {
 	builder := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Set("username", user.Username).
@@ -96,7 +95,7 @@ func (r *repository) Update(ctx context.Context, username string, user *model.Us
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	q := pg.Query{
@@ -106,16 +105,13 @@ func (r *repository) Update(ctx context.Context, username string, user *model.Us
 
 	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
-		return err
-	}
-	if ct.RowsAffected() == 0 {
-		return errors.New("user not found")
+		return 0, err
 	}
 
-	return nil
+	return ct.RowsAffected(), nil
 }
 
-func (r *repository) Delete(ctx context.Context, username string) error {
+func (r *repository) Delete(ctx context.Context, username string) (int64, error) {
 	builder := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
@@ -124,7 +120,7 @@ func (r *repository) Delete(ctx context.Context, username string) error {
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	q := pg.Query{
@@ -134,11 +130,8 @@ func (r *repository) Delete(ctx context.Context, username string) error {
 
 	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
-		return err
-	}
-	if ct.RowsAffected() == 0 {
-		return errors.New("user not found")
+		return 0, err
 	}
 
-	return nil
+	return ct.RowsAffected(), nil
 }
