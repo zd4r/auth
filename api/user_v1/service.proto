@@ -54,7 +54,8 @@ message GetResponse {
 }
 
 message UpdateRequest {
-  UserNullable user = 1;
+  string username = 1;
+  UserNullable user = 2;
 }
 
 message DeleteRequest {

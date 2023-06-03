@@ -8,7 +8,7 @@ import (
 )
 
 func (s *service) Create(ctx context.Context, user *model.User) error {
-	if user.Password != user.ConfirmPassword {
+	if user.Password.String != user.ConfirmPassword {
 		return errors.New("passwords don't match")
 	}
 

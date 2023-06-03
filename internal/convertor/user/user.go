@@ -26,10 +26,7 @@ func ToUser(user *desc.User, passwordConfirm string) *model.User {
 		Valid:  true,
 	}
 
-	u.ConfirmPassword = sql.NullString{
-		String: passwordConfirm,
-		Valid:  true,
-	}
+	u.ConfirmPassword = passwordConfirm
 
 	u.Role = user.GetRole().String()
 
@@ -63,15 +60,6 @@ func ToUserNullable(user *desc.UserNullable) *model.User {
 	u.Role = user.GetRole().String()
 
 	return &u
-}
-
-func ToUsername(username string) *model.User {
-	return &model.User{
-		Username: sql.NullString{
-			String: username,
-			Valid:  true,
-		},
-	}
 }
 
 func ToUserDesc(user *model.User) *desc.UserInfo {

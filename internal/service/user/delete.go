@@ -2,14 +2,16 @@ package user
 
 import (
 	"context"
-
-	model "github.com/zd4r/auth/internal/model/user"
+	"errors"
 )
 
-func (s *service) Delete(ctx context.Context, user *model.User) error {
-	err := s.userRepository.Delete(ctx, user)
+func (s *service) Delete(ctx context.Context, username string) error {
+	rowsAffected, err := s.userRepository.Delete(ctx, username)
 	if err != nil {
 		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("user not found")
 	}
 
 	return nil

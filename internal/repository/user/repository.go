@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/zd4r/auth/internal/client/pg"
 	model "github.com/zd4r/auth/internal/model/user"
 )
 
@@ -15,18 +15,18 @@ const tableName = `"user"`
 
 type Repository interface {
 	Create(ctx context.Context, user *model.User) error
-	Get(ctx context.Context, user *model.User) (*model.User, error)
-	Update(ctx context.Context, user *model.User) error
-	Delete(ctx context.Context, user *model.User) error
+	Get(ctx context.Context, username string) (*model.User, error)
+	Update(ctx context.Context, username string, user *model.User) (int64, error)
+	Delete(ctx context.Context, username string) (int64, error)
 }
 
 type repository struct {
-	pool *pgxpool.Pool
+	client pg.Client
 }
 
-func NewRepository(pool *pgxpool.Pool) *repository {
+func NewRepository(client pg.Client) *repository {
 	return &repository{
-		pool: pool,
+		client: client,
 	}
 }
 
@@ -41,7 +41,12 @@ func (r *repository) Create(ctx context.Context, user *model.User) error {
 		return err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Create",
+		QueryRaw: query,
+	}
+
+	_, err = r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
 		return err
 	}
@@ -49,12 +54,12 @@ func (r *repository) Create(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, error) {
+func (r *repository) Get(ctx context.Context, username string) (*model.User, error) {
 	builder := sq.Select("username", "email", "password", "role", "created_at", "updated_at").
 		From(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		}).Limit(1)
 
 	query, args, err := builder.ToSql()
@@ -62,17 +67,13 @@ func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, er
 		return nil, err
 	}
 
-	rows := r.pool.QueryRow(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Get",
+		QueryRaw: query,
+	}
 
 	var u model.User
-	err = rows.Scan(
-		&u.Username,
-		&u.Email,
-		&u.Password,
-		&u.Role,
-		&u.CreatedAt,
-		&u.UpdatedAt,
-	)
+	err = r.client.PG().ScanOne(ctx, &u, q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (r *repository) Get(ctx context.Context, user *model.User) (*model.User, er
 	return &u, nil
 }
 
-func (r *repository) Update(ctx context.Context, user *model.User) error {
+func (r *repository) Update(ctx context.Context, username string, user *model.User) (int64, error) {
 	builder := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Set("username", user.Username).
@@ -89,38 +90,48 @@ func (r *repository) Update(ctx context.Context, user *model.User) error {
 		Set("role", user.Role).
 		Set("updated_at", time.Now()).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		})
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Update",
+		QueryRaw: query,
+	}
+
+	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return ct.RowsAffected(), nil
 }
 
-func (r *repository) Delete(ctx context.Context, user *model.User) error {
+func (r *repository) Delete(ctx context.Context, username string) (int64, error) {
 	builder := sq.Delete(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{
-			"username": user.Username,
+			"username": username,
 		})
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	_, err = r.pool.Exec(ctx, query, args...)
+	q := pg.Query{
+		Name:     "user.Delete",
+		QueryRaw: query,
+	}
+
+	ct, err := r.client.PG().Exec(ctx, q, args...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return ct.RowsAffected(), nil
 }
