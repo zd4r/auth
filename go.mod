@@ -4,9 +4,8 @@ go 1.20
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/georgysavva/scany/v2 v2.0.0
-	github.com/jackc/pgx/v5 v5.0.0
-	github.com/joho/godotenv v1.5.1
+	github.com/envoyproxy/protoc-gen-validate v0.10.0
+	github.com/jackc/pgx/v4 v4.18.1
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )
