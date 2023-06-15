@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/zd4r/auth/internal/config"
+	"github.com/zd4r/auth/internal/interceptor"
 	"github.com/zd4r/auth/pkg/closer"
 	desc "github.com/zd4r/auth/pkg/user_v1"
 	"google.golang.org/grpc"
@@ -66,7 +67,9 @@ func (a *App) initServiceProvider(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
-	a.grpcServer = grpc.NewServer()
+	a.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.ValidateInterceptor),
+	)
 	reflection.Register(a.grpcServer)
 
 	desc.RegisterUserV1Server(a.grpcServer, a.serviceProvider.GetUserImpl(ctx))
