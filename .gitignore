@@ -23,5 +23,5 @@ go.work
 # Project specific
 bin/
 .idea/
+vendor.protogen/
 .env
-/vendor.protogen/
