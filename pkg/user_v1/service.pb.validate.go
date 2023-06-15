@@ -1068,6 +1068,8 @@ func (m *UpdateRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Username
+
 	if all {
 		switch v := interface{}(m.GetUser()).(type) {
 		case interface{ ValidateAll() error }:
