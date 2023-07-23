@@ -5,27 +5,65 @@ package user_v1;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package="github.com/zd4r/auth/pkg/user_v1;user_v1";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User API"
+    version: "1.0.0"
+  };
+
+  host: "localhost:8080";
+  schemes: HTTP;
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+};
+
 service UserV1 {
-  rpc Create(CreateRequest) returns (google.protobuf.Empty);
-  rpc Get(GetRequest) returns (GetResponse);
-  rpc Update(UpdateRequest) returns (google.protobuf.Empty);
-  rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  // Creates new user
+  rpc Create(CreateRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/user"
+      body: "*"
+    };
+  };
+  rpc Get(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/v1/user/{username}"
+    };
+  };
+  rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/user"
+      body: "*"
+    };
+  };
+  rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/user/{username}"
+    };
+  };
 }
 
 message User {
-  string username = 1;
-  string email = 2;
-  string password = 3;
+  // user's username
+  string username = 1 [(validate.rules).string.min_len = 4, (validate.rules).string.not_contains = " "];
+  // user's email
+  string email = 2 [(validate.rules).string.email = true];
+  // user's password
+  string password = 3 [(validate.rules).string.min_len = 8, (validate.rules).string.not_contains = " "];
   RoleInfo role = 5;
 }
 
 message UserNullable {
-  google.protobuf.StringValue username = 1;
-  google.protobuf.StringValue email = 2;
-  google.protobuf.StringValue password = 3;
+  google.protobuf.StringValue username = 1 [(validate.rules).string.min_len = 4, (validate.rules).string.not_contains = " "];
+  google.protobuf.StringValue email = 2 [(validate.rules).string.email = true];
+  google.protobuf.StringValue password = 3 [(validate.rules).string.min_len = 8, (validate.rules).string.not_contains = " "];
   RoleInfo role = 5;
 }
 
@@ -42,11 +80,11 @@ enum RoleInfo {
 
 message CreateRequest {
   User user = 1;
-  string password_confirm = 4;
+  string password_confirm = 4 [(validate.rules).string.min_len = 8, (validate.rules).string.not_contains = " "];
 }
 
 message GetRequest {
-  string username = 1;
+  string username = 1 [(validate.rules).string.min_len = 4, (validate.rules).string.not_contains = " "];
 }
 
 message GetResponse {
@@ -59,5 +97,5 @@ message UpdateRequest {
 }
 
 message DeleteRequest {
-  string username = 1;
+  string username = 1 [(validate.rules).string.min_len = 4, (validate.rules).string.not_contains = " "];
 }
