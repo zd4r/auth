@@ -7,10 +7,25 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 import "validate/validate.proto";
 import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package="github.com/zd4r/auth/pkg/user_v1;user_v1";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "User API"
+    version: "1.0.0"
+  };
+
+  host: "localhost:8080";
+  schemes: HTTP;
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+};
+
 service UserV1 {
+  // Creates new user
   rpc Create(CreateRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       post: "/v1/user"
@@ -19,24 +34,28 @@ service UserV1 {
   };
   rpc Get(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
-      get: "/v1/user"
+      get: "/v1/user/{username}"
     };
   };
   rpc Update(UpdateRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       put: "/v1/user"
+      body: "*"
     };
   };
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete: "/v1/user"
+      delete: "/v1/user/{username}"
     };
   };
 }
 
 message User {
+  // user's username
   string username = 1 [(validate.rules).string.min_len = 4, (validate.rules).string.not_contains = " "];
+  // user's email
   string email = 2 [(validate.rules).string.email = true];
+  // user's password
   string password = 3 [(validate.rules).string.min_len = 8, (validate.rules).string.not_contains = " "];
   RoleInfo role = 5;
 }

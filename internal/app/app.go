@@ -8,9 +8,11 @@ import (
 	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rs/cors"
 	"github.com/zd4r/auth/internal/config"
 	"github.com/zd4r/auth/internal/interceptor"
 	"github.com/zd4r/auth/pkg/closer"
+	"github.com/zd4r/auth/pkg/swagger"
 	desc "github.com/zd4r/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -20,8 +22,9 @@ import (
 type App struct {
 	serviceProvider *serviceProvider
 
-	grpcServer *grpc.Server
-	httpServer *http.Server
+	grpcServer    *grpc.Server
+	httpServer    *http.Server
+	swaggerServer *http.Server
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -42,7 +45,7 @@ func (a *App) Run() error {
 	}()
 
 	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -60,6 +63,14 @@ func (a *App) Run() error {
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+
+		if err := a.runSwaggerServer(); err != nil {
+			log.Fatalf("failed to run HTTP server: %v", err)
+		}
+	}()
+
 	wg.Wait()
 
 	return nil
@@ -71,6 +82,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initServiceProvider,
 		a.initGRPCServer,
 		a.initHTTPServer,
+		a.initSwaggerServer,
 	}
 
 	for _, f := range inits {
@@ -107,6 +119,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
+		AllowCredentials: true,
+	})
+
 	if err := desc.RegisterUserV1HandlerFromEndpoint(ctx,
 		mux,
 		a.serviceProvider.GetGRPCConfig().Host(),
@@ -117,7 +136,16 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	a.httpServer = &http.Server{
 		Addr:    a.serviceProvider.GetHTTPConfig().Host(),
-		Handler: mux,
+		Handler: corsMiddleware.Handler(mux),
+	}
+
+	return nil
+}
+
+func (a *App) initSwaggerServer(_ context.Context) error {
+	a.swaggerServer = &http.Server{
+		Addr:    a.serviceProvider.GetSwaggerConfig().Host(),
+		Handler: http.FileServer(http.FS(swagger.FS)),
 	}
 
 	return nil
@@ -138,4 +166,10 @@ func (a *App) runHTTPServer() error {
 	log.Printf("HTTP server is running on %s\n", a.serviceProvider.GetHTTPConfig().Host())
 
 	return a.httpServer.ListenAndServe()
+}
+
+func (a *App) runSwaggerServer() error {
+	log.Printf("Swagger server is running on %s\n", a.serviceProvider.GetSwaggerConfig().Host())
+
+	return a.swaggerServer.ListenAndServe()
 }
